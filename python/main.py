@@ -1,59 +1,15 @@
-import random
+import sys
 
 import arcade
 
-SCREEN_WIDTH = 640
-SCREEN_HEIGHT = 480
-MOVEMENT_SPEED = 3
-
-SPRITE_SCALING_ENEMY = 1.2
-ENEMY_COUNT = 10
-
-
-class Player(arcade.Sprite):
-
-    def update(self):
-        self.center_x += self.change_x
-        # self.center_y += self.change_y
-
-        if self.left < 0:
-            self.left = 0
-        elif self.right > SCREEN_WIDTH - 1:
-            self.right = SCREEN_WIDTH - 1
-
-
-class Enemy(arcade.Sprite):
-    """
-    This class represents the enemy on our screen.
-    """
-
-    # def reset_pos(self):
-
-    #     # Reset the coin to a random spot above the screen
-    #     self.center_y = random.randrange(SCREEN_HEIGHT + 20,
-    #                                      SCREEN_HEIGHT + 100)
-    #     self.center_x = random.randrange(SCREEN_WIDTH)
-
-    def update(self):
-
-        # Move the coin
-        self.center_y -= 1
-
-        # See if the coin has fallen off the bottom of the screen.
-        # If so, game over
-        if self.top < 0:
-            arcade.draw_text("Game Over", SCREEN_HEIGHT/2, SCREEN_WIDTH/2, arcade.color.WHITE, 14)
+from __init__ import *
+from entities import Player, Enemy, Arrow
 
 
 class MyGame(arcade.Window):
 
     def __init__(self, width, height, title):
-
-        # Call the parent class's init function
         super().__init__(width, height, title)
-
-        # file_path = os.path.dirname(os.path.abspath(__file__))
-        # os.chdir(file_path)
 
         # Make the mouse disappear when it is over the window.
         # So we just see our object, not the pointer.
@@ -67,91 +23,109 @@ class MyGame(arcade.Window):
         self.bullet_list = None
 
         self.player = None
+        self.score = 0
 
-        # Create our player
-        # self.player = Player(SCREEN_WIDTH/2., 0, 15, arcade.color.AUBURN)
+        self.current_state = STATUS_RUNNING
 
     def setup(self):
         self.player_list = arcade.SpriteList()
         self.enemy_list = arcade.SpriteList()
         self.bullet_list = arcade.SpriteList()
 
-        # Create the coins
         for i in range(ENEMY_COUNT):
             enemy = Enemy("../images/down_stand.png", SPRITE_SCALING_ENEMY)
 
-            # Position the enemy
             enemy.center_x = i*SCREEN_WIDTH/10+20
             enemy.center_y = SCREEN_HEIGHT*9/10
 
             self.enemy_list.append(enemy)
 
-        # Add player ship
         self.player = Player("../images/up_stand.png", 1)
         self.player.center_x = SCREEN_WIDTH/2.
         self.player.center_y = SCREEN_HEIGHT/10.
         self.player_list.append(self.player)
+    
+    def draw_game_over(self):
+        output = "Game Over"
+        arcade.draw_text(output, SCREEN_WIDTH/2., SCREEN_HEIGHT/2., arcade.color.RED, 54, align="center",
+                         anchor_x="center", anchor_y="center")
 
-    def on_draw(self):
-        """ Called whenever we need to draw the window. """
-        arcade.start_render()
-
+    def draw_game(self):
         self.enemy_list.draw()
         self.bullet_list.draw()
         self.player_list.draw()
 
+        output = f"Score: {self.score}"
+        arcade.draw_text(output, 10, 20, arcade.color.WHITE, 14)
+
+    def on_draw(self):
+        arcade.start_render()
+
+        self.draw_game()
+
+        if self.current_state == STATUS_PAUSE:
+            arcade.draw_text("Paused!", SCREEN_WIDTH/2., SCREEN_HEIGHT/2., arcade.color.WHITE, 54, align="center",
+                         anchor_x="center", anchor_y="center")
+        elif self.current_state == STATUS_RUNNING:
+            self.draw_game()
+        elif self.current_state == STATUS_GAME_OVER:
+            self.draw_game()
+            self.draw_game_over()
+
     def update(self, delta_time):
-        self.player.update()
-        self.enemy_list.update()
 
-        hit_list = arcade.check_for_collision_with_list(self.player,
-                                                        self.enemy_list)
+        if self.current_state == STATUS_RUNNING:
+            self.player.update()
+            self.enemy_list.update()
 
-        if hit_list:
-            arcade.draw_text("Game Over", SCREEN_WIDTH/2, SCREEN_HEIGHT/2, arcade.color.WHITE, 54)
+            hit_list = arcade.check_for_collision_with_list(self.player,
+                                                            self.enemy_list)
 
-        self.bullet_list.update()
+            if hit_list:
+                self.current_state = STATUS_GAME_OVER
 
-        # Loop through each bullet
-        for bullet in self.bullet_list:
+            self.bullet_list.update()
 
-            # Check this bullet to see if it hit a coin
-            hit_list = arcade.check_for_collision_with_list(bullet, self.enemy_list)
+            # Loop through each bullet
+            for bullet in self.bullet_list:
 
-            # If it did, get rid of the bullet
-            if len(hit_list) > 0:
-                bullet.kill()
+                hit_list = arcade.check_for_collision_with_list(bullet, self.enemy_list)
 
-            # For every coin we hit, add to the score and remove the coin
-            for enemy in hit_list:
-                enemy.kill()
-                # self.score += 1
+                if len(hit_list) > 0:
+                    bullet.kill()
 
-                # # Hit Sound
-                # arcade.sound.play_sound(self.hit_sound)
+                for enemy in hit_list:
+                    enemy.kill()
+                    self.score += 1
 
-            # If the bullet flies off-screen, remove it.
-            if bullet.bottom > SCREEN_HEIGHT:
-                bullet.kill()
+                    # arcade.sound.play_sound(self.hit_sound)
+
+                if bullet.bottom > SCREEN_HEIGHT:
+                    bullet.kill()
+
+            for enemy in self.enemy_list:
+                if enemy.top < 0:
+                    self.current_state = STATUS_GAME_OVER
 
     def on_key_press(self, key, modifiers):
-        """ Called whenever the user presses a key. """
         if key == arcade.key.LEFT:
             self.player.change_x = -MOVEMENT_SPEED
         elif key == arcade.key.RIGHT:
             self.player.change_x = MOVEMENT_SPEED
         elif key == arcade.key.SPACE:
-            bullet = arcade.Sprite("../images/arrow.png", 0.15)
-            bullet.change_y = 1.5
-            # Position the bullet
-            bullet.center_x = self.player.center_x
-            bullet.bottom = self.player.top
-
-            # Add the bullet to the appropriate lists
+            bullet = Arrow("../images/arrow.png", 0.15, self.player)
             self.bullet_list.append(bullet)
+        elif key == arcade.key.P:
+            if self.current_state == STATUS_PAUSE:
+                arcade.start_render()
+                self.current_state = 0
+            else:
+                arcade.finish_render()
+                self.current_state = 1
+        elif key == arcade.key.Q:
+            sys.exit()
 
     def on_key_release(self, key, modifiers):
-        """ Called whenever a user releases a key. """
         if key == arcade.key.LEFT or key == arcade.key.RIGHT:
             self.player.change_x = 0
 
