@@ -116,18 +116,21 @@ class MyGame(arcade.Window):
             bullet = Arrow("../images/arrow.png", 0.15, self.player)
             self.bullet_list.append(bullet)
         elif key == arcade.key.P:
-            if self.current_state == STATUS_PAUSE:
-                arcade.start_render()
-                self.current_state = 0
-            else:
-                arcade.finish_render()
-                self.current_state = 1
+            self.toggle_pause()
         elif key == arcade.key.Q:
             sys.exit()
 
     def on_key_release(self, key, modifiers):
         if key == arcade.key.LEFT or key == arcade.key.RIGHT:
             self.player.change_x = 0
+
+    def toggle_pause(self):
+        if self.current_state == STATUS_PAUSE:
+            arcade.start_render()
+            self.current_state = 0
+        else:
+            arcade.finish_render()
+            self.current_state = 1
 
 
 def main():
