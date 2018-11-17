@@ -4,6 +4,12 @@ from __init__ import *
 
 
 class Player(arcade.Sprite):
+    def __init__(self):
+        super().__init__("../images/up_stand.png", 1)
+
+        self.center_x = SCREEN_WIDTH/2.
+        self.center_y = SCREEN_HEIGHT/10.
+
     def update(self):
         self.center_x += self.change_x
 

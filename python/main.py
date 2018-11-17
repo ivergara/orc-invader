@@ -1,3 +1,4 @@
+import random
 import sys
 
 import arcade
@@ -19,8 +20,9 @@ class MyGame(arcade.Window):
 
         self.frame_count = 0
         self.player_list = None
+        self.plater_bullet_list = None
         self.enemy_list = None
-        self.bullet_list = None
+        self.enemy_bullet_list = None
 
         self.player = None
         self.score = 0
@@ -29,8 +31,9 @@ class MyGame(arcade.Window):
 
     def setup(self):
         self.player_list = arcade.SpriteList()
+        self.player_bullet_list = arcade.SpriteList()
         self.enemy_list = arcade.SpriteList()
-        self.bullet_list = arcade.SpriteList()
+        self.enemy_bullet_list = arcade.SpriteList()
 
         for i in range(ENEMY_COUNT):
             enemy = Enemy("../images/down_stand.png", SPRITE_SCALING_ENEMY)
@@ -40,9 +43,7 @@ class MyGame(arcade.Window):
 
             self.enemy_list.append(enemy)
 
-        self.player = Player("../images/up_stand.png", 1)
-        self.player.center_x = SCREEN_WIDTH/2.
-        self.player.center_y = SCREEN_HEIGHT/10.
+        self.player = Player()
         self.player_list.append(self.player)
     
     def draw_game_over(self):
@@ -52,8 +53,9 @@ class MyGame(arcade.Window):
 
     def draw_game(self):
         self.enemy_list.draw()
-        self.bullet_list.draw()
+        self.enemy_bullet_list.draw()
         self.player_list.draw()
+        self.player_bullet_list.draw()
 
         output = f"Score: {self.score}"
         arcade.draw_text(output, 10, 20, arcade.color.WHITE, 14)
@@ -84,10 +86,23 @@ class MyGame(arcade.Window):
             if hit_list:
                 self.current_state = STATUS_GAME_OVER
 
-            self.bullet_list.update()
+            self.enemy_bullet_list.update()
+            self.player_bullet_list.update()
 
-            # Loop through each bullet
-            for bullet in self.bullet_list:
+            for enemy in self.enemy_list:
+
+                if random.randrange(200) == 0:
+                    bullet = arcade.Sprite("../images/arrow.png", 0.20)
+                    bullet.center_x = enemy.center_x
+                    bullet.rotate = 180
+                    bullet.top = enemy.bottom
+                    bullet.change_y = -2
+                    self.enemy_bullet_list.append(bullet)
+
+                if enemy.top < 0:
+                    self.current_state = STATUS_GAME_OVER
+
+            for bullet in self.player_bullet_list:
 
                 hit_list = arcade.check_for_collision_with_list(bullet, self.enemy_list)
 
@@ -103,9 +118,17 @@ class MyGame(arcade.Window):
                 if bullet.bottom > SCREEN_HEIGHT:
                     bullet.kill()
 
-            for enemy in self.enemy_list:
-                if enemy.top < 0:
+            for bullet in self.enemy_bullet_list:
+
+                hit_list = arcade.check_for_collision_with_list(bullet, self.player_list)
+
+                if hit_list:
                     self.current_state = STATUS_GAME_OVER
+
+                # arcade.sound.play_sound(self.hit_sound)
+
+                if bullet.top < 0:
+                    bullet.kill()
 
     def on_key_press(self, key, modifiers):
         if key == arcade.key.LEFT:
@@ -127,10 +150,10 @@ class MyGame(arcade.Window):
     def toggle_pause(self):
         if self.current_state == STATUS_PAUSE:
             arcade.start_render()
-            self.current_state = 0
+            self.current_state = STATUS_RUNNING
         else:
             arcade.finish_render()
-            self.current_state = 1
+            self.current_state = STATUS_PAUSE
 
 
 def main():
