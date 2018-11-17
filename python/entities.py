@@ -12,6 +12,8 @@ class Player(arcade.Sprite):
         self.center_x = SCREEN_WIDTH/2.
         self.center_y = SCREEN_HEIGHT/10.
 
+        self.arrow_sound = arcade.load_sound("../sounds/arrowHit01.wav")
+
     def update(self):
         self.center_x += self.change_x
 
@@ -22,6 +24,8 @@ class Player(arcade.Sprite):
             self.right = SCREEN_WIDTH - 1
 
     def shoot(self):
+        arcade.sound.play_sound(self.arrow_sound)
+
         return Arrow("../images/arrow.png", 0.15, self)
 
 
@@ -37,7 +41,6 @@ class Enemy(arcade.Sprite):
             bullet.rotate = 180
             bullet.top = self.bottom
             bullet.change_y = -2
-            # bullet_list.append(bullet)
         return bullet
 
 

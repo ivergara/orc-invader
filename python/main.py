@@ -32,8 +32,6 @@ class MyGame(arcade.Window):
         self.enemy_list = Enemies.setup(ENEMY_COUNT)
         self.enemy_bullet_list = arcade.SpriteList()
 
-        # _enemy_init(self.enemy_list, ENEMY_COUNT)
-
         self.player = Player()
         self.player_list.append(self.player)
 
@@ -111,8 +109,6 @@ class MyGame(arcade.Window):
                     enemy.kill()
                     self.score += 1
 
-                    # arcade.sound.play_sound(self.hit_sound)
-
                 if bullet.bottom > SCREEN_HEIGHT:
                     bullet.kill()
 
@@ -122,8 +118,6 @@ class MyGame(arcade.Window):
 
                 if hit_list:
                     self.current_state = STATUS_GAME_OVER
-
-                # arcade.sound.play_sound(self.hit_sound)
 
                 if bullet.top < 0:
                     bullet.kill()
