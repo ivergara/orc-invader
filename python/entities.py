@@ -21,19 +21,38 @@ class Player(arcade.Sprite):
         elif self.right > SCREEN_WIDTH - 1:
             self.right = SCREEN_WIDTH - 1
 
+    def shoot(self):
+        return Arrow("../images/arrow.png", 0.15, self)
+
 
 class Enemy(arcade.Sprite):
     def update(self):
-        self.center_y -= 1.5
+        self.center_y -= 0.8
 
-    def shoot(self, bullet_list):
+    def shoot(self):
+        bullet = None
         """Shooting strategy for enemies."""
-        if random.randrange(200) == 0:
+        if random.randrange(300) == 0:
             bullet = Arrow("../images/arrow.png", 0.20, self)
             bullet.rotate = 180
             bullet.top = self.bottom
             bullet.change_y = -2
-            bullet_list.append(bullet)
+            # bullet_list.append(bullet)
+        return bullet
+
+
+class Enemies():
+    @classmethod
+    def setup(cls, enemy_count):
+        enemy_list = arcade.SpriteList()
+        for i in range(enemy_count):
+            enemy = Enemy("../images/down_stand.png", SPRITE_SCALING_ENEMY)
+
+            enemy.center_x = i*SCREEN_WIDTH/10+20
+            enemy.center_y = SCREEN_HEIGHT*9/10
+
+            enemy_list.append(enemy)
+        return enemy_list
 
 
 class Arrow(arcade.Sprite):

@@ -3,7 +3,7 @@ import sys
 import arcade
 
 from __init__ import *
-from entities import Player, Enemy, Arrow
+from entities import Player, Enemy, Arrow, Enemies
 
 
 class MyGame(arcade.Window):
@@ -29,10 +29,10 @@ class MyGame(arcade.Window):
     def setup(self):
         self.player_list = arcade.SpriteList()
         self.player_bullet_list = arcade.SpriteList()
-        self.enemy_list = arcade.SpriteList()
+        self.enemy_list = Enemies.setup(ENEMY_COUNT)
         self.enemy_bullet_list = arcade.SpriteList()
 
-        _enemy_init(self.enemy_list, ENEMY_COUNT)
+        # _enemy_init(self.enemy_list, ENEMY_COUNT)
 
         self.player = Player()
         self.player_list.append(self.player)
@@ -40,6 +40,11 @@ class MyGame(arcade.Window):
     def draw_game_over(self):
         output = "Game Over"
         arcade.draw_text(output, SCREEN_WIDTH/2., SCREEN_HEIGHT/2., arcade.color.RED, 54, align="center",
+                         anchor_x="center", anchor_y="center")
+
+    def draw_finish(self):
+        output = "You won!"
+        arcade.draw_text(output, SCREEN_WIDTH/2., SCREEN_HEIGHT/2., arcade.color.GREEN, 54, align="center",
                          anchor_x="center", anchor_y="center")
 
     def draw_game(self):
@@ -64,6 +69,9 @@ class MyGame(arcade.Window):
         elif self.current_state == STATUS_GAME_OVER:
             self.draw_game()
             self.draw_game_over()
+        elif self.current_state == STATUS_FINISH:
+            self.draw_game()
+            self.draw_finish()
 
     def update(self, delta_time):
 
@@ -80,9 +88,14 @@ class MyGame(arcade.Window):
             self.enemy_bullet_list.update()
             self.player_bullet_list.update()
 
-            for enemy in self.enemy_list:
+            if not self.enemy_list:
+                self.current_state = STATUS_FINISH
 
-                enemy.shoot(self.enemy_bullet_list)
+            for enemy in self.enemy_list:
+                # use assignment expression once 3.8 is released
+                bullet = enemy.shoot()
+                if bullet:
+                    self.enemy_bullet_list.append(bullet)
 
                 if enemy.top < 0:
                     self.current_state = STATUS_GAME_OVER
@@ -121,8 +134,7 @@ class MyGame(arcade.Window):
         elif key == arcade.key.RIGHT:
             self.player.change_x = MOVEMENT_SPEED
         elif key == arcade.key.SPACE:
-            bullet = Arrow("../images/arrow.png", 0.15, self.player)
-            self.player_bullet_list.append(bullet)
+            self.player_bullet_list.append(self.player.shoot())
         elif key == arcade.key.P:
             self.toggle_pause()
         elif key == arcade.key.Q:
@@ -139,16 +151,6 @@ class MyGame(arcade.Window):
         else:
             arcade.finish_render()
             self.current_state = STATUS_PAUSE
-
-
-def _enemy_init(enemy_list, enemy_count):
-    for i in range(enemy_count):
-        enemy = Enemy("../images/down_stand.png", SPRITE_SCALING_ENEMY)
-
-        enemy.center_x = i*SCREEN_WIDTH/10+20
-        enemy.center_y = SCREEN_HEIGHT*9/10
-
-        enemy_list.append(enemy)
 
 
 def main():
