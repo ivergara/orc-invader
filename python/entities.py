@@ -1,3 +1,5 @@
+import random
+
 import arcade
 
 from __init__ import *
@@ -23,6 +25,15 @@ class Player(arcade.Sprite):
 class Enemy(arcade.Sprite):
     def update(self):
         self.center_y -= 1.5
+
+    def shoot(self, bullet_list):
+        """Shooting strategy for enemies."""
+        if random.randrange(200) == 0:
+            bullet = Arrow("../images/arrow.png", 0.20, self)
+            bullet.rotate = 180
+            bullet.top = self.bottom
+            bullet.change_y = -2
+            bullet_list.append(bullet)
 
 
 class Arrow(arcade.Sprite):

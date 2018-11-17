@@ -1,4 +1,3 @@
-import random
 import sys
 
 import arcade
@@ -12,15 +11,13 @@ class MyGame(arcade.Window):
     def __init__(self, width, height, title):
         super().__init__(width, height, title)
 
-        # Make the mouse disappear when it is over the window.
-        # So we just see our object, not the pointer.
         self.set_mouse_visible(False)
 
         arcade.set_background_color(arcade.color.ASH_GREY)
 
         self.frame_count = 0
         self.player_list = None
-        self.plater_bullet_list = None
+        self.player_bullet_list = None
         self.enemy_list = None
         self.enemy_bullet_list = None
 
@@ -35,17 +32,11 @@ class MyGame(arcade.Window):
         self.enemy_list = arcade.SpriteList()
         self.enemy_bullet_list = arcade.SpriteList()
 
-        for i in range(ENEMY_COUNT):
-            enemy = Enemy("../images/down_stand.png", SPRITE_SCALING_ENEMY)
-
-            enemy.center_x = i*SCREEN_WIDTH/10+20
-            enemy.center_y = SCREEN_HEIGHT*9/10
-
-            self.enemy_list.append(enemy)
+        _enemy_init(self.enemy_list, ENEMY_COUNT)
 
         self.player = Player()
         self.player_list.append(self.player)
-    
+
     def draw_game_over(self):
         output = "Game Over"
         arcade.draw_text(output, SCREEN_WIDTH/2., SCREEN_HEIGHT/2., arcade.color.RED, 54, align="center",
@@ -91,13 +82,7 @@ class MyGame(arcade.Window):
 
             for enemy in self.enemy_list:
 
-                if random.randrange(200) == 0:
-                    bullet = arcade.Sprite("../images/arrow.png", 0.20)
-                    bullet.center_x = enemy.center_x
-                    bullet.rotate = 180
-                    bullet.top = enemy.bottom
-                    bullet.change_y = -2
-                    self.enemy_bullet_list.append(bullet)
+                enemy.shoot(self.enemy_bullet_list)
 
                 if enemy.top < 0:
                     self.current_state = STATUS_GAME_OVER
@@ -137,7 +122,7 @@ class MyGame(arcade.Window):
             self.player.change_x = MOVEMENT_SPEED
         elif key == arcade.key.SPACE:
             bullet = Arrow("../images/arrow.png", 0.15, self.player)
-            self.bullet_list.append(bullet)
+            self.player_bullet_list.append(bullet)
         elif key == arcade.key.P:
             self.toggle_pause()
         elif key == arcade.key.Q:
@@ -154,6 +139,16 @@ class MyGame(arcade.Window):
         else:
             arcade.finish_render()
             self.current_state = STATUS_PAUSE
+
+
+def _enemy_init(enemy_list, enemy_count):
+    for i in range(enemy_count):
+        enemy = Enemy("../images/down_stand.png", SPRITE_SCALING_ENEMY)
+
+        enemy.center_x = i*SCREEN_WIDTH/10+20
+        enemy.center_y = SCREEN_HEIGHT*9/10
+
+        enemy_list.append(enemy)
 
 
 def main():
