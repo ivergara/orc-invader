@@ -45,14 +45,8 @@ class OrcInvader(arcade.Window):
         self.player = Player()
         self.player_list.append(self.player)
 
-    def draw_game_over(self):
-        output = "Game Over"
-        arcade.draw_text(output, SCREEN_WIDTH/2., SCREEN_HEIGHT/2., arcade.color.RED, 54, align="center",
-                         anchor_x="center", anchor_y="center")
-
-    def draw_finish(self):
-        output = "You won!"
-        arcade.draw_text(output, SCREEN_WIDTH/2., SCREEN_HEIGHT/2., arcade.color.GREEN, 54, align="center",
+    def draw_message(self, text, color):
+        arcade.draw_text(text, SCREEN_WIDTH/2., SCREEN_HEIGHT/2., color, 54, align="center",
                          anchor_x="center", anchor_y="center")
 
     def draw_game(self):
@@ -67,23 +61,20 @@ class OrcInvader(arcade.Window):
     def on_draw(self):
         arcade.start_render()
 
-        self.draw_game()
-
-        if self.current_state == GameState.PAUSED:
-            arcade.draw_text("Paused!", SCREEN_WIDTH/2., SCREEN_HEIGHT/2., arcade.color.WHITE, 54, align="center",
-                         anchor_x="center", anchor_y="center")
-        elif self.current_state == GameState.RUNNING:
+        if self.current_state is GameState.PAUSED:
+            self.draw_game("Game Paused", arcade.color.WHITE)
+        elif self.current_state is GameState.RUNNING:
             self.draw_game()
-        elif self.current_state == GameState.GAME_OVER:
+        elif self.current_state is GameState.GAME_OVER:
             self.draw_game()
-            self.draw_game_over()
-        elif self.current_state == GameState.FINISHED:
+            self.draw_message("Game Over", arcade.color.RED)
+        elif self.current_state is GameState.FINISHED:
             self.draw_game()
-            self.draw_finish()
+            self.draw_message("WON", arcade.color.GREEN)
 
     def update(self, delta_time):
 
-        if self.current_state == GameState.RUNNING:
+        if self.current_state is GameState.RUNNING:
             self.player.update()
             self.enemy_list.update()
 
@@ -149,7 +140,7 @@ class OrcInvader(arcade.Window):
             self.player.change_x = 0
 
     def toggle_pause(self):
-        if self.current_state == GameState.PAUSED:
+        if self.current_state is GameState.PAUSED:
             arcade.start_render()
             self.current_state = GameState.RUNNING
         else:
