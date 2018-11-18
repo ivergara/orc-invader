@@ -60,16 +60,13 @@ class OrcInvader(arcade.Window):
 
     def on_draw(self):
         arcade.start_render()
+        self.draw_game()
 
         if self.current_state is GameState.PAUSED:
-            self.draw_game("Game Paused", arcade.color.WHITE)
-        elif self.current_state is GameState.RUNNING:
-            self.draw_game()
+            self.draw_message("Game Paused", arcade.color.WHITE)
         elif self.current_state is GameState.GAME_OVER:
-            self.draw_game()
             self.draw_message("Game Over", arcade.color.RED)
         elif self.current_state is GameState.FINISHED:
-            self.draw_game()
             self.draw_message("WON", arcade.color.GREEN)
 
     def update(self, delta_time):
@@ -118,7 +115,7 @@ class OrcInvader(arcade.Window):
                 hit_list = arcade.check_for_collision_with_list(bullet, self.player_list)
 
                 if hit_list:
-                    self.current_state =  GameState.PAUSED
+                    self.current_state =  GameState.GAME_OVER
 
                 if bullet.top < 0:
                     bullet.kill()
