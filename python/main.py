@@ -1,12 +1,22 @@
 import sys
+from enum import Enum, auto
 
 import arcade
-
 from __init__ import *
-from entities import Player, Enemy, Arrow, Enemies
+from entities import Arrow, Enemies, Enemy, Player
 
 
-class MyGame(arcade.Window):
+class GameState(Enum):
+    RUNNING = auto()
+    PAUSED = auto()
+    FINISHED = auto()
+    GAME_OVER = auto()
+
+    def __repr__(self):
+        return '<%s.%s>' % (self.__class__.__name__, self.name)
+
+
+class OrcInvader(arcade.Window):
 
     def __init__(self, width, height, title):
         super().__init__(width, height, title)
@@ -24,7 +34,7 @@ class MyGame(arcade.Window):
         self.player = None
         self.score = 0
 
-        self.current_state = STATUS_RUNNING
+        self.current_state = GameState.RUNNING
 
     def setup(self):
         self.player_list = arcade.SpriteList()
@@ -59,21 +69,21 @@ class MyGame(arcade.Window):
 
         self.draw_game()
 
-        if self.current_state == STATUS_PAUSE:
+        if self.current_state == GameState.PAUSED:
             arcade.draw_text("Paused!", SCREEN_WIDTH/2., SCREEN_HEIGHT/2., arcade.color.WHITE, 54, align="center",
                          anchor_x="center", anchor_y="center")
-        elif self.current_state == STATUS_RUNNING:
+        elif self.current_state == GameState.RUNNING:
             self.draw_game()
-        elif self.current_state == STATUS_GAME_OVER:
+        elif self.current_state == GameState.GAME_OVER:
             self.draw_game()
             self.draw_game_over()
-        elif self.current_state == STATUS_FINISH:
+        elif self.current_state == GameState.FINISHED:
             self.draw_game()
             self.draw_finish()
 
     def update(self, delta_time):
 
-        if self.current_state == STATUS_RUNNING:
+        if self.current_state == GameState.RUNNING:
             self.player.update()
             self.enemy_list.update()
 
@@ -81,13 +91,13 @@ class MyGame(arcade.Window):
                                                             self.enemy_list)
 
             if hit_list:
-                self.current_state = STATUS_GAME_OVER
+                self.current_state = GameState.GAME_OVER
 
             self.enemy_bullet_list.update()
             self.player_bullet_list.update()
 
             if not self.enemy_list:
-                self.current_state = STATUS_FINISH
+                self.current_state = GameState.FINISHED
 
             for enemy in self.enemy_list:
                 # use assignment expression once 3.8 is released
@@ -96,7 +106,7 @@ class MyGame(arcade.Window):
                     self.enemy_bullet_list.append(bullet)
 
                 if enemy.top < 0:
-                    self.current_state = STATUS_GAME_OVER
+                    self.current_state = GameState.GAME_OVER
 
             for bullet in self.player_bullet_list:
 
@@ -117,7 +127,7 @@ class MyGame(arcade.Window):
                 hit_list = arcade.check_for_collision_with_list(bullet, self.player_list)
 
                 if hit_list:
-                    self.current_state = STATUS_GAME_OVER
+                    self.current_state =  GameState.PAUSED
 
                 if bullet.top < 0:
                     bullet.kill()
@@ -139,16 +149,16 @@ class MyGame(arcade.Window):
             self.player.change_x = 0
 
     def toggle_pause(self):
-        if self.current_state == STATUS_PAUSE:
+        if self.current_state == GameState.PAUSED:
             arcade.start_render()
-            self.current_state = STATUS_RUNNING
+            self.current_state = GameState.RUNNING
         else:
             arcade.finish_render()
-            self.current_state = STATUS_PAUSE
+            self.current_state = GameState.PAUSED
 
 
 def main():
-    window = MyGame(640, 480, "Orc-Invader Python")
+    window = OrcInvader(640, 480, "Orc-Invader Python")
     window.setup()
     arcade.run()
 

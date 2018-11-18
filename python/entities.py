@@ -24,7 +24,7 @@ class Player(arcade.Sprite):
             self.right = SCREEN_WIDTH - 1
 
     def shoot(self):
-        arcade.sound.play_sound(self.arrow_sound)
+        # arcade.sound.play_sound(self.arrow_sound)
 
         return Arrow("../images/arrow.png", 0.15, self)
 
